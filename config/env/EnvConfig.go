@@ -26,9 +26,9 @@ func LoadAll() MaybeConfig {
 	envs := os.Environ()
 	configs := map[string]string{}
 	for _, item := range envs {
-		pair := strings.SplitN(item, "=", 1)
+		pair := strings.SplitN(item, "=", 2)
 		if len(pair) < 2 {
-			return errors.New("")
+			return errors.New("envConfig error:" + item)
 		}
 		configs[pair[0]] = pair[1]
 	}
@@ -42,5 +42,5 @@ func (s *EnvConfig) Get(name string) string {
 }
 
 func (s *EnvConfig) GetInt(name string) int {
-
+	return 0
 }
