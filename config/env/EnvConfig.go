@@ -22,19 +22,20 @@ type Error struct {
 	error
 }
 
-func LoadAll() MaybeConfig {
+// LoadAll todo
+func LoadAll() (config.Config, error) {
 	envs := os.Environ()
 	configs := map[string]string{}
 	for _, item := range envs {
 		pair := strings.SplitN(item, "=", 2)
 		if len(pair) < 2 {
-			return errors.New("envConfig error:" + item)
+			return nil, errors.New("envConfig error:" + item)
 		}
 		configs[pair[0]] = pair[1]
 	}
 	return &EnvConfig{
 		configs: configs,
-	}
+	}, nil
 }
 
 func (s *EnvConfig) Get(name string) string {
