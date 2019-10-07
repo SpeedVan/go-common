@@ -14,12 +14,21 @@ type MaybeConfig either.Either
 type EnvConfig struct {
 	config.Config
 	MaybeConfig
+	Prefix  string
 	configs map[string]string
 }
 
 type Error struct {
 	MaybeConfig
 	error
+}
+
+// WithPrefix todo
+func (s *EnvConfig) WithPrefix(p string) config.Config {
+	return &EnvConfig{
+		Prefix:  s.Prefix + p,
+		configs: s.configs,
+	}
 }
 
 // LoadAll todo
@@ -38,8 +47,9 @@ func LoadAll() (config.Config, error) {
 	}, nil
 }
 
+// Get todo
 func (s *EnvConfig) Get(name string) string {
-	return s.configs[name]
+	return s.configs[s.Prefix+name]
 }
 
 func (s *EnvConfig) GetInt(name string) int {
