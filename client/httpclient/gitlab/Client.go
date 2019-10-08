@@ -57,7 +57,7 @@ func (s *Client) GetTree(group, project, sha, path string) ([]*TreeNode, error) 
 }
 
 // GetFile todo
-func (s *Client) GetFile(group, project, sha, path string) (io.ReadCloser, error) {
+func (s *Client) GetFile(group, project, sha, path string) (io.ReadCloser, http.Header, error) {
 	url := "https://" + s.Domain +
 		"/api/v4/projects/" + group + "%2F" + project +
 		"/repository/files/" + url.QueryEscape(path) + "/raw?ref=" + sha
@@ -66,7 +66,7 @@ func (s *Client) GetFile(group, project, sha, path string) (io.ReadCloser, error
 	req.Header.Set("Private-Token", s.PrimaryToken)
 	res, err := s.HTTPClient.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return res.Body, nil
+	return res.Body, res.Header, nil
 }
