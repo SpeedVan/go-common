@@ -1,6 +1,7 @@
 package gitlab
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"io/ioutil"
@@ -8,6 +9,7 @@ import (
 	"net/url"
 
 	"github.com/SpeedVan/go-common/client/httpclient"
+	"github.com/SpeedVan/go-common/client/httpclient/gitlab/graphql"
 	"github.com/SpeedVan/go-common/config"
 )
 
@@ -69,4 +71,61 @@ func (s *Client) GetFile(group, project, sha, path string) (io.ReadCloser, http.
 		return nil, nil, err
 	}
 	return res.Body, res.Header, nil
+}
+
+// Graphql todo
+func (s *Client) Graphql(group, project, sha, path string) (*graphql.Graphql, error) {
+	url := "https://gitlab.com/api/graphql"
+	println(url)
+	query :=
+		"{\n" +
+			"  project(fullPath: \"" + group + "/" + project + "\") {\n" +
+			"    repository {\n" +
+			"      tree(path:\"" + path + "\", ref:\"" + sha + "\") {\n" +
+			"        trees {\n" +
+			"          nodes {\n" +
+			"            flatPath\n" +
+			"            id\n" +
+			"            name\n" +
+			"            path\n" +
+			"            type\n" +
+			"            webUrl\n" +
+			"          }\n" +
+			"        }\n" +
+			"        blobs {\n" +
+			"          nodes {\n" +
+			"            flatPath\n" +
+			"            id\n" +
+			"            name\n" +
+			"            path\n" +
+			"            type\n" +
+			"            webUrl\n" +
+			"          }\n" +
+			"        }\n" +
+			"      }\n" +
+			"    }\n" +
+			"  }\n" +
+			"}"
+	byteData, _ := json.Marshal(&graphql.Payload{
+		Query: query,
+	})
+	println(string(byteData))
+	req, _ := http.NewRequest("POST", url, bytes.NewReader(byteData))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Private-Token", "sF7us_xdFTBseuKeyvNo")
+	res, err := s.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	resBytes, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	println(string(resBytes))
+	result := &graphql.Graphql{}
+	err = json.Unmarshal(resBytes, result)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
