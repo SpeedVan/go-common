@@ -1,6 +1,7 @@
 package gitlab
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"io"
@@ -37,8 +38,8 @@ func New(config config.Config) (*Client, error) {
 }
 
 // GetTree todo
-func (s *Client) GetTree(group, project, sha, path string) ([]*TreeNode, error) {
-	url := "https://" + s.Domain +
+func (s *Client) GetTree(protocol, group, project, sha, path string) ([]*TreeNode, error) {
+	url := protocol + "://" + s.Domain +
 		"/api/v4/projects/" + group + "%2F" + project +
 		"/repository/tree?ref=" + sha + "&path=" + path + "&per_page=500"
 	println(url)
@@ -59,8 +60,8 @@ func (s *Client) GetTree(group, project, sha, path string) ([]*TreeNode, error) 
 }
 
 // GetFile todo
-func (s *Client) GetFile(group, project, sha, path string) (io.ReadCloser, http.Header, error) {
-	url := "https://" + s.Domain +
+func (s *Client) GetFile(protocol, group, project, sha, path string) (io.ReadCloser, http.Header, error) {
+	url := protocol + "://" + s.Domain +
 		"/api/v4/projects/" + group + "%2F" + project +
 		"/repository/files/" + url.QueryEscape(path) + "/raw?ref=" + sha
 	println(url)
@@ -74,8 +75,8 @@ func (s *Client) GetFile(group, project, sha, path string) (io.ReadCloser, http.
 }
 
 // HeadFile todo
-func (s *Client) HeadFile(group, project, sha, path string) (http.Header, error) {
-	url := "https://" + s.Domain +
+func (s *Client) HeadFile(protocol, group, project, sha, path string) (http.Header, error) {
+	url := protocol + "://" + s.Domain +
 		"/api/v4/projects/" + group + "%2F" + project +
 		"/repository/files/" + url.QueryEscape(path) + "/raw?ref=" + sha
 	println(url)
@@ -88,9 +89,36 @@ func (s *Client) HeadFile(group, project, sha, path string) (http.Header, error)
 	return res.Header, nil
 }
 
+// GetBlobSizeFromBody Because there is no blol size in (all) old Gitlab api header, the blob size only can get from body with blob api
+func (s *Client) GetBlobSizeFromBody(protocol, group, project, blobID string) (string, error) {
+	url := protocol + "://" + s.Domain +
+		"/api/v4/projects/" + group + "%2F" + project +
+		"/repository/blobs/" + blobID
+	println(url)
+	req, _ := http.NewRequest("GET", url, http.NoBody)
+	req.Header.Set("Private-Token", s.PrimaryToken)
+	res, err := s.HTTPClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+	reader := bufio.NewReader(res.Body)
+	line, err := reader.ReadString(':')
+	if err != nil {
+		return "", err
+	}
+	line, err = reader.ReadString(',')
+	if err != nil {
+		return "", err
+	}
+	size := line[:len(line)-1]
+
+	return size, nil
+}
+
 // Graphql todo
-func (s *Client) Graphql(group, project, sha, path string) (*graphql.Graphql, error) {
-	url := "https://gitlab.com/api/graphql"
+func (s *Client) Graphql(protocol, group, project, sha, path string) (*graphql.Graphql, error) {
+	url := protocol + "://" + s.Domain + "/api/graphql"
 	println(url)
 	query :=
 		"{\n" +
