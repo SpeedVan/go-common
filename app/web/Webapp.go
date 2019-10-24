@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -19,6 +20,7 @@ type Webapp struct {
 
 // New todo
 func New(config config.Config) *Webapp {
+	fmt.Println("address:" + config.Get("WEBAPP_LISTEN_ADDRESS"))
 	return &Webapp{
 		Router:  mux.NewRouter(),
 		Address: config.Get("WEBAPP_LISTEN_ADDRESS"),
