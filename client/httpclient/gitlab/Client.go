@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/SpeedVan/go-common/client/httpclient"
 	"github.com/SpeedVan/go-common/client/httpclient/gitlab/graphql"
@@ -39,11 +40,11 @@ func New(config config.Config) (*Client, error) {
 
 // GetTree todo
 func (s *Client) GetTree(protocol, group, project, sha, path string) ([]*TreeNode, error) {
-	url := protocol + "://" + s.Domain +
+	urlPath := protocol + "://" + s.Domain +
 		"/api/v4/projects/" + group + "%2F" + project +
 		"/repository/tree?ref=" + sha + "&path=" + path + "&per_page=500"
-	println(url)
-	req, _ := http.NewRequest("GET", url, http.NoBody)
+	println(urlPath)
+	req, _ := http.NewRequest("GET", urlPath, http.NoBody)
 	req.Header.Set("Private-Token", s.PrimaryToken)
 	res, err := s.HTTPClient.Do(req)
 	if err != nil {
@@ -61,11 +62,11 @@ func (s *Client) GetTree(protocol, group, project, sha, path string) ([]*TreeNod
 
 // GetFile todo
 func (s *Client) GetFile(protocol, group, project, sha, path string) (io.ReadCloser, http.Header, error) {
-	url := protocol + "://" + s.Domain +
+	urlPath := protocol + "://" + s.Domain +
 		"/api/v4/projects/" + group + "%2F" + project +
 		"/repository/files/" + url.QueryEscape(path) + "/raw?ref=" + sha
-	println(url)
-	req, _ := http.NewRequest("GET", url, http.NoBody)
+	println(urlPath)
+	req, _ := http.NewRequest("GET", urlPath, http.NoBody)
 	req.Header.Set("Private-Token", s.PrimaryToken)
 	res, err := s.HTTPClient.Do(req)
 	if err != nil {
@@ -76,11 +77,11 @@ func (s *Client) GetFile(protocol, group, project, sha, path string) (io.ReadClo
 
 // HeadFile todo
 func (s *Client) HeadFile(protocol, group, project, sha, path string) (http.Header, error) {
-	url := protocol + "://" + s.Domain +
+	urlPath := protocol + "://" + s.Domain +
 		"/api/v4/projects/" + group + "%2F" + project +
 		"/repository/files/" + url.QueryEscape(path) + "/raw?ref=" + sha
-	println(url)
-	req, _ := http.NewRequest("HEAD", url, http.NoBody)
+	println(urlPath)
+	req, _ := http.NewRequest("HEAD", urlPath, http.NoBody)
 	req.Header.Set("Private-Token", s.PrimaryToken)
 	res, err := s.HTTPClient.Do(req)
 	if err != nil {
@@ -91,11 +92,11 @@ func (s *Client) HeadFile(protocol, group, project, sha, path string) (http.Head
 
 // GetBlobSizeFromBody Because there is no blol size in (all) old Gitlab api header, the blob size only can get from body with blob api
 func (s *Client) GetBlobSizeFromBody(protocol, group, project, blobID string) (string, error) {
-	url := protocol + "://" + s.Domain +
+	urlPath := protocol + "://" + s.Domain +
 		"/api/v4/projects/" + group + "%2F" + project +
 		"/repository/blobs/" + blobID
-	println(url)
-	req, _ := http.NewRequest("GET", url, http.NoBody)
+	println(urlPath)
+	req, _ := http.NewRequest("GET", urlPath, http.NoBody)
 	req.Header.Set("Private-Token", s.PrimaryToken)
 	res, err := s.HTTPClient.Do(req)
 	if err != nil {
@@ -116,10 +117,85 @@ func (s *Client) GetBlobSizeFromBody(protocol, group, project, blobID string) (s
 	return size, nil
 }
 
+// GetCommits todo
+func (s *Client) GetCommits(protocol, group, project, sha, path string) ([]*Commit, error) {
+
+	urlPath := protocol + "://" + s.Domain +
+		"/api/v4/projects/" + group + "%2F" + project +
+		"/repository/commits"
+
+	querys := []string{}
+	if sha != "" {
+		querys = append(querys, "sha="+sha)
+	}
+	if path != "" {
+		querys = append(querys, "path="+path)
+	}
+	rawQuery := strings.Join(querys, "&")
+	if rawQuery != "" {
+		urlPath = urlPath + "?" + rawQuery
+	}
+	println(urlPath)
+	req, _ := http.NewRequest("GET", urlPath, http.NoBody)
+	req.Header.Set("Private-Token", s.PrimaryToken)
+	res, err := s.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	resBytes, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	result := []*Commit{}
+	err = json.Unmarshal(resBytes, result)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// GetProjects todo
+func (s *Client) GetProjects(protocol, group string) ([]*Project, error) {
+
+	urlPath := protocol + "://" + s.Domain +
+		"/api/v4/groups/" + group + "/projects"
+
+	// querys := []string{}
+	// if sha != "" {
+	// 	querys = append(querys, "sha="+sha)
+	// }
+	// if path != "" {
+	// 	querys = append(querys, "path="+path)
+	// }
+	// rawQuery := strings.Join(querys, "&")
+	// if rawQuery != "" {
+	// 	urlPath = urlPath + "?" + rawQuery
+	// }
+	println(urlPath)
+	req, _ := http.NewRequest("GET", urlPath, http.NoBody)
+	req.Header.Set("Private-Token", s.PrimaryToken)
+	res, err := s.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	resBytes, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	result := []*Project{}
+	err = json.Unmarshal(resBytes, result)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 // Graphql todo
 func (s *Client) Graphql(protocol, group, project, sha, path string) (*graphql.Graphql, error) {
-	url := protocol + "://" + s.Domain + "/api/graphql"
-	println(url)
+	urlPath := protocol + "://" + s.Domain + "/api/graphql"
+	println(urlPath)
 	query :=
 		"{\n" +
 			"  project(fullPath: \"" + group + "/" + project + "\") {\n" +
@@ -153,7 +229,7 @@ func (s *Client) Graphql(protocol, group, project, sha, path string) (*graphql.G
 		Query: query,
 	})
 	println(string(byteData))
-	req, _ := http.NewRequest("POST", url, bytes.NewReader(byteData))
+	req, _ := http.NewRequest("POST", urlPath, bytes.NewReader(byteData))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Private-Token", "sF7us_xdFTBseuKeyvNo")
 	res, err := s.HTTPClient.Do(req)

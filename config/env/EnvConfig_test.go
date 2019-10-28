@@ -9,10 +9,16 @@ import (
 )
 
 func Test(t *testing.T) {
-	conf, err := env.LoadAllWithPrefix("abc_")
+	conf, err := env.LoadAllWithoutPrefix("abc_")
 	if err != nil {
 		t.Error(err)
 	}
+
+	c := conf.WithPrefix("CHECK_CONFIG_")
+
+	c.ForEachArrayConfig("CHECK_CONFIG", func(c config.Config) {
+		fmt.Println(c.Get("name"))
+	})
 
 	conf.ForEachArrayConfig("CHECK_CONFIG", func(c config.Config) {
 		fmt.Println(c.Get("name"))

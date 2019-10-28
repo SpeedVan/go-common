@@ -100,7 +100,7 @@ func (s *EnvConfig) Get(name string) string {
 func (s *EnvConfig) GetMap(name string) omap.Map {
 	complexmap := s.MapConfig
 	// fmt.Println(complexmap)
-	v, err := complexmap.RecursionGet(name)
+	v, err := complexmap.RecursionGet(s.Prefix + name)
 	if err != nil {
 		return nil
 	}
@@ -125,7 +125,9 @@ func (s *EnvConfig) GetCompositeMap(name string) *omap.CompositeMap {
 
 func (s *EnvConfig) GetConfig(name string) config.Config {
 
-	return nil
+	return &EnvConfig{
+		Prefix: "",
+	}
 }
 
 func (s *EnvConfig) ForEachArrayConfig(name string, handler func(config.Config)) {
@@ -136,7 +138,7 @@ func (s *EnvConfig) ForEachArrayConfig(name string, handler func(config.Config))
 			handler(&EnvConfig{
 				Prefix: "",
 				// OriginConfig: s.OriginConfig.F_map(func(k2 string, v2 interface{}) (string, interface{}) {
-				// 	return strings.TrimPrefix(s.Prefix+name+"_"+k+"_", k2), v
+				// 	 return strings.TrimPrefix(s.Prefix+name+"_"+k+"_", k2), v
 				// }).(*omap.CompositeMap), // 这是基础的配置信息
 				MapConfig: cmap, // 基础配置信息加工器 Tuple(result, handlerFunc)
 			})
@@ -145,6 +147,7 @@ func (s *EnvConfig) ForEachArrayConfig(name string, handler func(config.Config))
 }
 
 func (s *EnvConfig) GetInt(name string) int {
+
 	return 0
 }
 

@@ -7,7 +7,6 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/SpeedVan/go-common/app"
-	"github.com/SpeedVan/go-common/app/web/controller"
 	"github.com/SpeedVan/go-common/config"
 )
 
@@ -40,7 +39,7 @@ func (s *Webapp) HandleFunc(p string, f func(http.ResponseWriter, *http.Request)
 }
 
 // HandleController todo
-func (s *Webapp) HandleController(p string, c controller.Controller) *Webapp {
+func (s *Webapp) HandleController(c Controller) *Webapp {
 	for k, v := range c.GetRoute() {
 		route := s.Router.HandleFunc(k, v.HandleFunc)
 		if len(v.Methods) > 0 {
