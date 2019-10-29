@@ -208,7 +208,7 @@ func (s *Client) GetGroupProjects(protocol string) ([]*Project, error) {
 	// if rawQuery != "" {
 	// 	urlPath = urlPath + "?" + rawQuery
 	// }
-	println(urlPath)
+
 	req, _ := http.NewRequest("GET", urlPath, http.NoBody)
 	req.Header.Set("Private-Token", s.PrivateToken)
 	res, err := s.HTTPClient.Do(req)

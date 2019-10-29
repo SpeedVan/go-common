@@ -38,7 +38,7 @@ func (s RouteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // RouteMap todo
-type RouteMap map[string]RouteHandler
+type RouteMap map[string]http.Handler
 
 // Merge todo
 func (s RouteMap) Merge(rm RouteMap) RouteMap {
@@ -63,7 +63,9 @@ func NewRouteMap(arr ...*RouteItem) RouteMap {
 		if _, ok := result[item.Path]; !ok {
 			result[item.Path] = make(RouteHandler)
 		}
-		result[item.Path][item.Method] = item.HandleFunc
+		if h, ok := result[item.Path].(RouteHandler); ok {
+			h[item.Method] = item.HandleFunc
+		}
 	}
 	return result
 }
