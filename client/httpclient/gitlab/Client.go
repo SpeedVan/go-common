@@ -18,13 +18,13 @@ import (
 // Client todo
 type Client struct {
 	HTTPClient   *http.Client
-	PrimaryToken string // sF7us_xdFTBseuKeyvNo
+	PrivateToken string // sF7us_xdFTBseuKeyvNo
 	Domain       string // gitlab.com
 }
 
 // New todo
 func New(config config.Config) (*Client, error) {
-	primaryToken := config.Get("PRIVATE_TOKEN")
+	privateToken := config.Get("PRIVATE_TOKEN")
 	domain := config.Get("DOMAIN")
 	httpClient, err := httpclient.New(config)
 	if err != nil {
@@ -33,7 +33,7 @@ func New(config config.Config) (*Client, error) {
 
 	return &Client{
 		HTTPClient:   httpClient,
-		PrimaryToken: primaryToken,
+		PrivateToken: privateToken,
 		Domain:       domain,
 	}, nil
 }
@@ -45,7 +45,7 @@ func (s *Client) GetTree(protocol, group, project, sha, path string) ([]*TreeNod
 		"/repository/tree?ref=" + sha + "&path=" + path + "&per_page=500"
 	println(urlPath)
 	req, _ := http.NewRequest("GET", urlPath, http.NoBody)
-	req.Header.Set("Private-Token", s.PrimaryToken)
+	req.Header.Set("Private-Token", s.PrivateToken)
 	res, err := s.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
@@ -64,10 +64,10 @@ func (s *Client) GetTree(protocol, group, project, sha, path string) ([]*TreeNod
 func (s *Client) GetFile(protocol, group, project, sha, path string) (io.ReadCloser, http.Header, error) {
 	urlPath := protocol + "://" + s.Domain +
 		"/api/v4/projects/" + group + "%2F" + project +
-		"/repository/files/" + url.QueryEscape(path) + "/raw?ref=" + sha
+		"/repository/files/" + url.PathEscape(path) + "/raw?ref=" + sha
 	println(urlPath)
 	req, _ := http.NewRequest("GET", urlPath, http.NoBody)
-	req.Header.Set("Private-Token", s.PrimaryToken)
+	req.Header.Set("Private-Token", s.PrivateToken)
 	res, err := s.HTTPClient.Do(req)
 	if err != nil {
 		return nil, nil, err
@@ -79,10 +79,10 @@ func (s *Client) GetFile(protocol, group, project, sha, path string) (io.ReadClo
 func (s *Client) HeadFile(protocol, group, project, sha, path string) (http.Header, error) {
 	urlPath := protocol + "://" + s.Domain +
 		"/api/v4/projects/" + group + "%2F" + project +
-		"/repository/files/" + url.QueryEscape(path) + "/raw?ref=" + sha
+		"/repository/files/" + url.PathEscape(path) + "/raw?ref=" + sha
 	println(urlPath)
 	req, _ := http.NewRequest("HEAD", urlPath, http.NoBody)
-	req.Header.Set("Private-Token", s.PrimaryToken)
+	req.Header.Set("Private-Token", s.PrivateToken)
 	res, err := s.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
@@ -97,7 +97,7 @@ func (s *Client) GetBlobSizeFromBody(protocol, group, project, blobID string) (s
 		"/repository/blobs/" + blobID
 	println(urlPath)
 	req, _ := http.NewRequest("GET", urlPath, http.NoBody)
-	req.Header.Set("Private-Token", s.PrimaryToken)
+	req.Header.Set("Private-Token", s.PrivateToken)
 	res, err := s.HTTPClient.Do(req)
 	if err != nil {
 		return "", err
@@ -137,7 +137,7 @@ func (s *Client) GetCommits(protocol, group, project, sha, path string) ([]*Comm
 	}
 	println(urlPath)
 	req, _ := http.NewRequest("GET", urlPath, http.NoBody)
-	req.Header.Set("Private-Token", s.PrimaryToken)
+	req.Header.Set("Private-Token", s.PrivateToken)
 	res, err := s.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
@@ -148,7 +148,7 @@ func (s *Client) GetCommits(protocol, group, project, sha, path string) ([]*Comm
 		return nil, err
 	}
 	result := []*Commit{}
-	err = json.Unmarshal(resBytes, result)
+	err = json.Unmarshal(resBytes, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -174,7 +174,7 @@ func (s *Client) GetProjects(protocol, group string) ([]*Project, error) {
 	// }
 	println(urlPath)
 	req, _ := http.NewRequest("GET", urlPath, http.NoBody)
-	req.Header.Set("Private-Token", s.PrimaryToken)
+	req.Header.Set("Private-Token", s.PrivateToken)
 	res, err := s.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
@@ -185,7 +185,43 @@ func (s *Client) GetProjects(protocol, group string) ([]*Project, error) {
 		return nil, err
 	}
 	result := []*Project{}
-	err = json.Unmarshal(resBytes, result)
+	err = json.Unmarshal(resBytes, &result)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// GetGroupProjects todo
+func (s *Client) GetGroupProjects(protocol string) ([]*Project, error) {
+	urlPath := protocol + "://" + s.Domain +
+		"/api/v4/projects?membership=true&simple=true"
+
+	// querys := []string{}
+	// if sha != "" {
+	// 	querys = append(querys, "sha="+sha)
+	// }
+	// if path != "" {
+	// 	querys = append(querys, "path="+path)
+	// }
+	// rawQuery := strings.Join(querys, "&")
+	// if rawQuery != "" {
+	// 	urlPath = urlPath + "?" + rawQuery
+	// }
+	println(urlPath)
+	req, _ := http.NewRequest("GET", urlPath, http.NoBody)
+	req.Header.Set("Private-Token", s.PrivateToken)
+	res, err := s.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	resBytes, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	result := []*Project{}
+	err = json.Unmarshal(resBytes, &result)
 	if err != nil {
 		return nil, err
 	}

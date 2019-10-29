@@ -41,10 +41,7 @@ func (s *Webapp) HandleFunc(p string, f func(http.ResponseWriter, *http.Request)
 // HandleController todo
 func (s *Webapp) HandleController(c Controller) *Webapp {
 	for k, v := range c.GetRoute() {
-		route := s.Router.HandleFunc(k, v.HandleFunc)
-		if len(v.Methods) > 0 {
-			route.Methods(v.Methods...)
-		}
+		s.Router.Handle(k, v)
 	}
 	return s
 }
