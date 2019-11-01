@@ -15,7 +15,27 @@ type Level int
 const (
 	_ Level = iota
 	Error
-	Warn
 	Info
+	Warn
 	Debug
 )
+
+func (s Level) String() string {
+	switch s {
+	case Error: return "ERROR"
+	case Warn: return "WARN"
+	case Info: return "INFO"
+	case Debug: return "DEBUG"
+	default: return ""
+	}
+}
+
+func (s Level) FormatString() string {
+	switch s {
+	case Error: return "ERROR"
+	case Warn: return "WARN "
+	case Info: return "INFO "
+	case Debug: return "DEBUG"
+	default: return "     "
+	}
+}
