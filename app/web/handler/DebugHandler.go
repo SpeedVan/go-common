@@ -1,17 +1,19 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
+
+	"github.com/SpeedVan/go-common/log"
 )
 
 // DebugHandler todo
 type DebugHandler struct {
+	Logger log.Logger
 	http.Handler
 	OrginalHandler http.Handler
 }
 
 func (s *DebugHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("%v %v %v %v\n", r.Method, r.URL.Path, r.URL.RawQuery, r.Header)
+	s.Logger.DebugF("%v %v %v %v\n", r.Method, r.URL.Path, r.URL.RawQuery, r.Header)
 	s.OrginalHandler.ServeHTTP(w, r)
 }

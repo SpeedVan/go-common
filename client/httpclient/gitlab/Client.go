@@ -26,7 +26,11 @@ type Client struct {
 }
 
 // New todo
-func New(config config.Config) (*Client, error) {
+func New(config config.Config, logger log.Logger) (*Client, error) {
+    if logger == nil {
+        logger = common.NewCommon(log.Debug)
+    }
+
     privateToken := config.Get("PRIVATE_TOKEN")
     domain := config.Get("DOMAIN")
     httpClient, err := httpclient.New(config)
@@ -35,7 +39,7 @@ func New(config config.Config) (*Client, error) {
     }
 
     return &Client{
-        Logger:       common.NewCommon(log.Debug),
+        Logger:       logger,
         HTTPClient:   httpClient,
         PrivateToken: privateToken,
         Domain:       domain,

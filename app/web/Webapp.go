@@ -1,8 +1,10 @@
 package web
 
 import (
-	"fmt"
 	"net/http"
+
+	"github.com/SpeedVan/go-common/log"
+	"github.com/SpeedVan/go-common/log/common"
 
 	"github.com/gorilla/mux"
 
@@ -13,15 +15,20 @@ import (
 
 // Webapp todo
 type Webapp struct {
+	Logger log.Logger
 	app.App
 	Router  *mux.Router
 	Address string
 }
 
 // New todo
-func New(config config.Config) *Webapp {
-	fmt.Println("address:" + config.Get("WEBAPP_LISTEN_ADDRESS"))
+func New(config config.Config, logger log.Logger) *Webapp {
+	if logger == nil {
+		logger = common.NewCommon(log.Debug)
+	}
+
 	return &Webapp{
+		Logger:  logger,
 		Router:  mux.NewRouter(),
 		Address: config.Get("WEBAPP_LISTEN_ADDRESS"),
 	}
@@ -42,13 +49,20 @@ func (s *Webapp) HandleFunc(p string, f func(http.ResponseWriter, *http.Request)
 // HandleController todo
 func (s *Webapp) HandleController(c Controller) *Webapp {
 	for k, v := range c.GetRoute() {
-		s.Router.Handle(k, &handler.DebugHandler{OrginalHandler: v})
-		fmt.Printf("req path:%v %v\n", k, v)
+		s.Logger.DebugF("registed request path:%v %v", k, v)
+		s.Router.Handle(k, &handler.DebugHandler{Logger: s.Logger, OrginalHandler: v})
 	}
 	return s
 }
 
 // Run todo
-func (s *Webapp) Run() error {
+func (s *Webapp) Run(level log.Level) error {
+	s.Logger.InfoF("start with address: %v", s.Address)
+	s.Logger.SetLevel(level)
 	return http.ListenAndServe(s.Address, s.Router)
+}
+
+// SimpleRun todo
+func (s *Webapp) SimpleRun() error {
+	return s.Run(log.Info)
 }
