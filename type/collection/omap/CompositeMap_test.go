@@ -12,8 +12,6 @@ func TestCompositeMap(t *testing.T) {
 		Data: make(omap.ComplexMap),
 	}
 
-	
-
 	check(config)
 
 	v := config.Get("123")
@@ -40,10 +38,6 @@ func TestCompositeMap(t *testing.T) {
 		fmt.Println(val)
 	}
 
-	if m, ok := val.(*omap.CompositeMap); ok {
-		fmt.Println(m.ToStringMap())
-	}
-	
 }
 
 func check(m omap.Map) omap.Map {

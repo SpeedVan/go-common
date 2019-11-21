@@ -11,4 +11,5 @@ type Config interface {
 	// GetArr(string) []string
 	GetMap(string) omap.Map
 	ForEachArrayConfig(string, func(Config))
+	ToGolangStringMap() map[string]string
 }

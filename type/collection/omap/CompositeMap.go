@@ -101,11 +101,3 @@ func (s *CompositeMap) F_map(handlerRet func(string, interface{}) (string, inter
 func (s *CompositeMap) ToSourceMap() map[string]interface{} {
 	return s.Data
 }
-
-func (s *CompositeMap) ToStringMap() map[string]string {
-	result := make(map[string]string)
-	for k, v := range s.Data {
-		result[k]= fmt.Sprintf("%v", v)
-	}
-	return result
-}

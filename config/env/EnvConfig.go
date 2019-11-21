@@ -154,3 +154,11 @@ func (s *EnvConfig) GetInt(name string) int {
 func (s *EnvConfig) String() string {
 	return s.MapConfig.String()
 }
+
+func (s *EnvConfig) ToGolangStringMap() map[string]string {
+	result := make(map[string]string)
+	s.OriginConfig.ForEach(func(k string, v interface{}) {
+		result[k] = fmt.Sprintf("%v", v)
+	})
+	return result
+}

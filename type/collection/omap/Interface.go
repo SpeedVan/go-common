@@ -10,5 +10,4 @@ type Map interface {
 	ForEach(func(string, interface{}))
 	F_map(func(string, interface{}) (string, interface{})) Map
 	ToSourceMap() map[string]interface{}
-	ToStringMap() map[string]string
 }
