@@ -14,9 +14,9 @@ func Test(t *testing.T) {
 		t.Error(err)
 	}
 
-	c := conf.WithPrefix("CHECK_CONFIG_")
+	// c := conf.WithPrefix("CHECK_CONFIG_")
 
-	c.ForEachArrayConfig("CHECK_CONFIG", func(c config.Config) {
+	conf.ForEachArrayConfig("CHECK_CONFIG", func(c config.Config) {
 		fmt.Println(c.Get("name"))
 	})
 
@@ -24,4 +24,5 @@ func Test(t *testing.T) {
 		fmt.Println(c.Get("name"))
 	})
 
+	fmt.Println(conf.WithPrefix("CHECK_").ToGolangStringMap())
 }

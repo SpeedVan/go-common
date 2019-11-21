@@ -43,8 +43,9 @@ type Error struct {
 // WithPrefix todo
 func (s *EnvConfig) WithPrefix(p string) config.Config {
 	return &EnvConfig{
-		Prefix:    s.Prefix + p,
-		MapConfig: s.MapConfig,
+		Prefix:       s.Prefix + p,
+		OriginConfig: s.OriginConfig,
+		MapConfig:    s.MapConfig,
 	}
 }
 
@@ -56,7 +57,7 @@ func LoadAll() (config.Config, error) {
 // LoadAllWithoutPrefix todo
 func LoadAllWithoutPrefix(prefix string) (config.Config, error) {
 	envs := os.Environ()
-	// config := &omap.CompositeMap{Data: make(omap.ComplexMap)}
+	config := &omap.CompositeMap{Data: make(omap.ComplexMap)}
 	cacheConfig := &omap.CompositeMap{Data: make(omap.ComplexMap)}
 	var err error
 	for _, item := range envs {
@@ -65,6 +66,7 @@ func LoadAllWithoutPrefix(prefix string) (config.Config, error) {
 			if len(pair) < 2 {
 				fmt.Println(errors.New("envConfig error:" + item))
 			} else {
+				config.Set(pair[0], pair[1])
 				cacheConfig, err = listHandler(pair[0], pair[1], cacheConfig)
 				if err != nil {
 					return nil, err
@@ -74,8 +76,8 @@ func LoadAllWithoutPrefix(prefix string) (config.Config, error) {
 		}
 	}
 	return &EnvConfig{
-		// OriginConfig: config,
-		MapConfig: cacheConfig,
+		OriginConfig: config,
+		MapConfig:    cacheConfig,
 	}, nil
 }
 
@@ -158,7 +160,7 @@ func (s *EnvConfig) String() string {
 func (s *EnvConfig) ToGolangStringMap() map[string]string {
 	result := make(map[string]string)
 	s.OriginConfig.ForEach(func(k string, v interface{}) {
-		result[k] = fmt.Sprintf("%v", v)
+		result[strings.TrimPrefix(k, s.Prefix)] = fmt.Sprintf("%v", v)
 	})
 	return result
 }
