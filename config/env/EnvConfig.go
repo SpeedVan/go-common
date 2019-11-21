@@ -160,7 +160,9 @@ func (s *EnvConfig) String() string {
 func (s *EnvConfig) ToGolangStringMap() map[string]string {
 	result := make(map[string]string)
 	s.OriginConfig.ForEach(func(k string, v interface{}) {
-		result[strings.TrimPrefix(k, s.Prefix)] = fmt.Sprintf("%v", v)
+		if strings.HasPrefix(k, s.Prefix) {
+			result[strings.TrimPrefix(k, s.Prefix)] = fmt.Sprintf("%v", v)
+		}
 	})
 	return result
 }
