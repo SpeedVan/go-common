@@ -2,6 +2,8 @@ package env_test
 
 import (
 	"fmt"
+	"reflect"
+	"runtime"
 	"testing"
 
 	"github.com/SpeedVan/go-common/config"
@@ -25,4 +27,27 @@ func Test(t *testing.T) {
 	})
 
 	fmt.Println(conf.WithPrefix("CHECK_").ToGolangStringMap())
+}
+
+type TestStruct struct {
+}
+
+func (s *TestStruct) TestA(a, b string) {
+
+}
+
+func (s *TestStruct) fm(a, b string) {
+
+}
+
+type AllMethodHandler func(string, string)
+
+type TestF map[string]interface{}
+
+func Test2(t *testing.T) {
+	s := &TestStruct{}
+
+	m := make(TestF)
+	m["TestA"] = runtime.FuncForPC(reflect.ValueOf(AllMethodHandler(s.TestA)).Pointer()).Name()
+	fmt.Println(runtime.FuncForPC(reflect.ValueOf(AllMethodHandler(s.fm)).Pointer()).Name())
 }

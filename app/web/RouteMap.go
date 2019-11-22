@@ -2,6 +2,8 @@ package web
 
 import (
 	"net/http"
+	"reflect"
+	"runtime"
 	"sort"
 	"strings"
 )
@@ -37,6 +39,25 @@ func (s RouteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (s RouteHandler) String() string {
+	arr := []string{}
+	for k, v := range s {
+		arr = append(arr, "\""+k+"\": \""+runtime.FuncForPC(reflect.ValueOf(v).Pointer()).Name()+"\"")
+	}
+	return "{" + strings.Join(arr, ",") + "}"
+}
+
+// AllMethodHandler todo
+type AllMethodHandler func(http.ResponseWriter, *http.Request)
+
+func (s AllMethodHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	s(w, r)
+}
+
+func (s AllMethodHandler) String() string {
+	return "{" + "\"ALL\": \"" + runtime.FuncForPC(reflect.ValueOf(s).Pointer()).Name() + "\"" + "}"
+}
+
 // RouteMap todo
 type RouteMap map[string]http.Handler
 
@@ -60,11 +81,15 @@ func MergeRouteMap(arr ...RouteMap) RouteMap {
 func NewRouteMap(arr ...*RouteItem) RouteMap {
 	result := make(RouteMap)
 	for _, item := range arr {
-		if _, ok := result[item.Path]; !ok {
-			result[item.Path] = make(RouteHandler)
-		}
-		if h, ok := result[item.Path].(RouteHandler); ok {
-			h[item.Method] = item.HandleFunc
+		if item.Method != "" {
+			if _, ok := result[item.Path]; !ok {
+				result[item.Path] = make(RouteHandler)
+			}
+			if h, ok := result[item.Path].(RouteHandler); ok {
+				h[item.Method] = item.HandleFunc
+			}
+		} else {
+			result[item.Path] = AllMethodHandler(item.HandleFunc)
 		}
 	}
 	return result
