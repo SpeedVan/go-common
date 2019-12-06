@@ -21,7 +21,7 @@ func URLParse(gitlabURL string) *URLInfo {
 		group := parts[1]
 		project := parts[2]
 		sha := parts[4]
-		sysPath = "/mnt/dav/" + u.Host + "/" + group + "+" + project + "/" + sha + "/"
+		// sysPath = "/mnt/dav/" + u.Host + "/" + group + "+" + project + "/" + sha + "/"
 
 		if partsLen == 6 && len(parts[5]) != 0 {
 			srcPath := parts[5]
