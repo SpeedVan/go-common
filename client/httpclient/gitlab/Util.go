@@ -7,7 +7,7 @@ import (
 )
 
 // URLParse todo
-func URLParse(gitlabURL string) *Path {
+func URLParse(gitlabURL string) *URLInfo {
 	u, _ := url.Parse(gitlabURL)
 
 	urlPath := u.Path
