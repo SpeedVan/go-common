@@ -30,7 +30,7 @@ func URLParse(gitlabURL string) *Path {
 			entrypoint += strings.TrimSuffix(filename, ".py") + ".main"
 		}
 
-		return &Path{
+		return &URLInfo{
 			Domain:     u.Host,
 			Group:      group,
 			Project:    project,
@@ -40,7 +40,7 @@ func URLParse(gitlabURL string) *Path {
 		}
 	}
 
-	return &Path{
+	return &URLInfo{
 		Domain:     "err_domain",
 		Group:      "err_group",
 		Project:    "err_project",
@@ -50,8 +50,8 @@ func URLParse(gitlabURL string) *Path {
 	}
 }
 
-// Path todo
-type Path struct {
+// URLInfo todo
+type URLInfo struct {
 	Domain     string
 	Group      string
 	Project    string
