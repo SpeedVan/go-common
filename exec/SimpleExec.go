@@ -1,6 +1,7 @@
 package exec
 
 import (
+	"errors"
 	"fmt"
 	"os/exec"
 )
@@ -14,7 +15,7 @@ func SimpleExec(command string, params ...string) (string, error) {
 	bs, err := cmd.CombinedOutput()
 	content := string(bs)
 	if err != nil {
-		return content, err
+		return "", errors.New(err.Error() + "\n" + content)
 	}
 	return content, nil
 }
