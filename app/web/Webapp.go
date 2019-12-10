@@ -136,7 +136,11 @@ func (s *Webapp) Run(level log.Level) error {
 
 	// 退出信号
 	err := <-s.doneChan
-	s.Logger.InfoF("server shutdown graceful")
+	if err != nil {
+		s.Logger.ErrorF("server shutdown err:", err.Error())
+	} else {
+		s.Logger.InfoF("server shutdown graceful")
+	}
 	return err
 }
 
