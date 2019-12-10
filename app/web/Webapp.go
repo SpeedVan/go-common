@@ -1,7 +1,12 @@
 package web
 
 import (
+	"context"
+	"net"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/SpeedVan/go-common/log"
 	"github.com/SpeedVan/go-common/log/common"
@@ -19,6 +24,11 @@ type Webapp struct {
 	app.App
 	Router  *mux.Router
 	Address string
+
+	doneChan     chan error
+	osSignalChan chan os.Signal
+	server       *http.Server
+	ctx          context.Context
 }
 
 // New todo
@@ -27,10 +37,51 @@ func New(config config.Config, logger log.Logger) *Webapp {
 		logger = common.NewCommon(log.Debug)
 	}
 
+	doneChan := make(chan error)
+	osSignalChan := make(chan os.Signal, 1)
+	osKillChan := make(chan os.Signal, 1)
+	signal.Notify(osSignalChan, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(osKillChan, syscall.SIGKILL)
+
+	ctx := context.Background()
+
+	addr := config.Get("WEBAPP_LISTEN_ADDRESS")
+	router := mux.NewRouter()
+	server := &http.Server{
+		Addr:    addr,
+		Handler: router,
+		BaseContext: func(l net.Listener) context.Context {
+			return ctx
+		},
+	}
+
+	go func() {
+		sig := <-osSignalChan
+		logger.DebugF("received sig:%v", sig)
+		// Shutdown会让监听断开，即协程里的server.ListenAndServe()将往后执行。
+		// Shutdown按协议说的是graceful，Close是immediately（强杀）。
+		err := server.Shutdown(ctx)
+		logger.ErrorF("Shutdown err:%v", err)
+		doneChan <- err
+	}()
+
+	go func() {
+		sig := <-osKillChan
+		logger.DebugF("received sig:%v", sig)
+		err := server.Close()
+		logger.ErrorF("Close err:%v", err)
+		doneChan <- err
+	}()
+
 	return &Webapp{
 		Logger:  logger,
-		Router:  mux.NewRouter(),
-		Address: config.Get("WEBAPP_LISTEN_ADDRESS"),
+		Router:  router,
+		Address: addr,
+
+		doneChan:     doneChan,
+		osSignalChan: osSignalChan,
+		server:       server,
+		ctx:          ctx,
 	}
 }
 
@@ -59,7 +110,16 @@ func (s *Webapp) HandleController(c Controller) *Webapp {
 func (s *Webapp) Run(level log.Level) error {
 	s.Logger.InfoF("start with address: %v", s.Address)
 	s.Logger.SetLevel(level)
-	return http.ListenAndServe(s.Address, s.Router)
+
+	go func() {
+		if err := s.server.ListenAndServe(); err == nil || err == http.ErrServerClosed {
+			s.Logger.InfoF("Listen and serve: %v:%v", "ok close", err)
+		} else {
+			s.Logger.ErrorF("Listen and serve: %v", err)
+		}
+	}()
+
+	return <-s.doneChan
 }
 
 // SimpleRun todo
