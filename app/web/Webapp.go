@@ -56,20 +56,28 @@ func New(config config.Config, logger log.Logger) *Webapp {
 
 	go func() {
 		sig := <-osSignalChan
-		logger.DebugF("received sig:%v", sig)
+		logger.DebugF("received sig: %v", sig)
 		// Shutdown会让监听断开，即协程里的server.ListenAndServe()将往后执行。
 		// Shutdown按协议说的是graceful，Close是immediately（强杀）。
-		err := server.Shutdown(ctx)
-		logger.ErrorF("Shutdown err:%v", err)
-		doneChan <- err
+		if err := server.Shutdown(ctx); err == nil || err == http.ErrServerClosed {
+			logger.Debug("Shutdown ok")
+			doneChan <- nil
+		} else {
+			logger.ErrorF("Shutdown err: %v", err)
+			doneChan <- err
+		}
 	}()
 
 	go func() {
 		sig := <-osKillChan
-		logger.DebugF("received sig:%v", sig)
-		err := server.Close()
-		logger.ErrorF("Close err:%v", err)
-		doneChan <- err
+		logger.DebugF("received sig: %v", sig)
+		if err := server.Close(); err == nil || err == http.ErrServerClosed {
+			logger.Debug("Close ok")
+			doneChan <- nil
+		} else {
+			logger.ErrorF("Close err: %v", err)
+			doneChan <- err
+		}
 	}()
 
 	return &Webapp{
@@ -98,7 +106,7 @@ func (s *Webapp) HandleFunc(p string, f func(http.ResponseWriter, *http.Request)
 // HandleController todo
 func (s *Webapp) HandleController(c Controller) *Webapp {
 	for k, v := range c.GetRoute() {
-		s.Logger.DebugF("registed request path:%v %v", k, v)
+		s.Logger.DebugF("registed request path: %v %v", k, v)
 		s.Router.Handle(k, &handler.DebugHandler{Logger: s.Logger, OrginalHandler: v})
 	}
 	return s
@@ -117,15 +125,19 @@ func (s *Webapp) Run(level log.Level) error {
 	// http 端口监听
 	go func() {
 		if err := s.server.ListenAndServe(); err == nil || err == http.ErrServerClosed {
-			s.Logger.InfoF("Listen and serve: %v:%v", "ok close", err)
+			s.Logger.Debug("Listen and serve close ok")
 		} else {
-			s.Logger.ErrorF("Listen and serve: %v", err)
+			s.Logger.ErrorF("Listen and serve close err: %v", err)
 		}
 	}()
 
 	// 可以考虑其他端口监听
+	//
 
-	return <-s.doneChan
+	// 退出信号
+	err := <-s.doneChan
+	s.Logger.InfoF("server shutdown graceful")
+	return err
 }
 
 // SimpleRun todo
