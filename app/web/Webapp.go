@@ -25,10 +25,9 @@ type Webapp struct {
 	Router  *mux.Router
 	Address string
 
-	doneChan     chan error
-	osSignalChan chan os.Signal
-	server       *http.Server
-	ctx          context.Context
+	doneChan chan error
+	server   *http.Server
+	ctx      context.Context
 }
 
 // New todo
@@ -78,10 +77,9 @@ func New(config config.Config, logger log.Logger) *Webapp {
 		Router:  router,
 		Address: addr,
 
-		doneChan:     doneChan,
-		osSignalChan: osSignalChan,
-		server:       server,
-		ctx:          ctx,
+		doneChan: doneChan,
+		server:   server,
+		ctx:      ctx,
 	}
 }
 
@@ -106,11 +104,17 @@ func (s *Webapp) HandleController(c Controller) *Webapp {
 	return s
 }
 
+// RegisterOnShutdown todo
+func (s *Webapp) RegisterOnShutdown(f func()) {
+	s.server.RegisterOnShutdown(f)
+}
+
 // Run todo
 func (s *Webapp) Run(level log.Level) error {
 	s.Logger.InfoF("start with address: %v", s.Address)
 	s.Logger.SetLevel(level)
 
+	// http 端口监听
 	go func() {
 		if err := s.server.ListenAndServe(); err == nil || err == http.ErrServerClosed {
 			s.Logger.InfoF("Listen and serve: %v:%v", "ok close", err)
@@ -118,6 +122,8 @@ func (s *Webapp) Run(level log.Level) error {
 			s.Logger.ErrorF("Listen and serve: %v", err)
 		}
 	}()
+
+	// 可以考虑其他端口监听
 
 	return <-s.doneChan
 }
