@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/SpeedVan/go-common/config"
@@ -13,12 +14,15 @@ import (
 )
 
 var (
-	reg          = regexp.MustCompile(`([a-zA-Z0-9][a-zA-Z0-9_]*?)_(\d+)`)
+	reg = regexp.MustCompile(`([a-zA-Z0-9][a-zA-Z0-9_]*?)_(\d+)`)
+	// LIST_HANDLER todo
 	LIST_HANDLER = "list"
 )
 
+// MaybeConfig todo
 type MaybeConfig either.Either
 
+// EnvConfig todo
 type EnvConfig struct {
 	config.Config
 	MaybeConfig
@@ -35,6 +39,7 @@ func listHandler(k, v string, state *omap.CompositeMap) (*omap.CompositeMap, err
 	return state, nil
 }
 
+// Error todo
 type Error struct {
 	MaybeConfig
 	error
@@ -81,24 +86,57 @@ func LoadAllWithoutPrefix(prefix string) (config.Config, error) {
 	}, nil
 }
 
-// func GetList(name string) []interface{} {
-// 	for k, v := range s.configs {
-
-// 	}
-// }
-
 // Get todo
 func (s *EnvConfig) Get(name string) string {
-	result, err := s.MapConfig.RecursionGet(s.Prefix + name)
+	str, err := s.MapConfig.RecursionGet(s.Prefix + name)
 	if err != nil {
 		return ""
 	}
-	if str, ok := result.(string); ok {
-		return str
+	if result, ok := str.(string); ok {
+		return result
 	}
 	return ""
 }
 
+// GetString todo
+func (s *EnvConfig) GetString(name string, _default string) string {
+	str, err := s.MapConfig.RecursionGet(s.Prefix + name)
+	if err != nil {
+		return _default
+	}
+	if result, ok := str.(string); ok {
+		return result
+	}
+	return _default
+}
+
+// GetInt todo
+func (s *EnvConfig) GetInt(name string, _default int) int {
+	str, err := s.MapConfig.RecursionGet(s.Prefix + name)
+	if err != nil {
+		return _default
+	}
+	intResult, err := strconv.Atoi(fmt.Sprint(str))
+	if err != nil {
+		return _default
+	}
+	return intResult
+}
+
+// GetBool todo
+func (s *EnvConfig) GetBool(name string, _default bool) bool {
+	str, err := s.MapConfig.RecursionGet(s.Prefix + name)
+	if err != nil {
+		return _default
+	}
+	boolResult, err := strconv.ParseBool(fmt.Sprint(str))
+	if err != nil {
+		return _default
+	}
+	return boolResult
+}
+
+// GetMap todo
 func (s *EnvConfig) GetMap(name string) omap.Map {
 	complexmap := s.MapConfig
 	// fmt.Println(complexmap)
@@ -112,6 +150,7 @@ func (s *EnvConfig) GetMap(name string) omap.Map {
 	return nil
 }
 
+// GetCompositeMap todo
 func (s *EnvConfig) GetCompositeMap(name string) *omap.CompositeMap {
 	complexmap := s.MapConfig
 	// fmt.Println(complexmap)
@@ -125,6 +164,7 @@ func (s *EnvConfig) GetCompositeMap(name string) *omap.CompositeMap {
 	return nil
 }
 
+// GetConfig todo
 func (s *EnvConfig) GetConfig(name string) config.Config {
 
 	return &EnvConfig{
@@ -132,6 +172,7 @@ func (s *EnvConfig) GetConfig(name string) config.Config {
 	}
 }
 
+// ForEachArrayConfig todo
 func (s *EnvConfig) ForEachArrayConfig(name string, handler func(config.Config)) {
 	s.GetCompositeMap(s.Prefix + name).ForEach(func(k string, v interface{}) {
 		if cmap, ok := v.(*omap.CompositeMap); ok {
@@ -148,15 +189,11 @@ func (s *EnvConfig) ForEachArrayConfig(name string, handler func(config.Config))
 	})
 }
 
-func (s *EnvConfig) GetInt(name string) int {
-
-	return 0
-}
-
 func (s *EnvConfig) String() string {
 	return s.MapConfig.String()
 }
 
+// ToGolangStringMap todo
 func (s *EnvConfig) ToGolangStringMap() map[string]string {
 	result := make(map[string]string)
 	s.OriginConfig.ForEach(func(k string, v interface{}) {
