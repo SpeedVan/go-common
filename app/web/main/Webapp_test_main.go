@@ -7,11 +7,10 @@ import (
 	"time"
 
 	"github.com/SpeedVan/go-common/config/mock"
-	lc "github.com/SpeedVan/go-common/log/common"
 )
 
 func main() {
-	logger := lc.NewCommon(log.Debug) // this level control webapp init log level
+	logger := log.NewCommon(log.Debug) // this level control webapp init log level
 
 	m := map[string]string{
 		"WEBAPP_LISTEN_ADDRESS": ":9999",

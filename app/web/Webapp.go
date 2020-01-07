@@ -9,7 +9,6 @@ import (
 	"syscall"
 
 	"github.com/SpeedVan/go-common/log"
-	"github.com/SpeedVan/go-common/log/common"
 
 	"github.com/gorilla/mux"
 
@@ -33,7 +32,7 @@ type Webapp struct {
 // New todo
 func New(config config.Config, logger log.Logger) *Webapp {
 	if logger == nil {
-		logger = common.NewCommon(log.Debug)
+		logger = log.NewCommon(log.Debug)
 	}
 
 	doneChan := make(chan error)
