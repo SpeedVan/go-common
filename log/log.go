@@ -20,9 +20,13 @@ type Level int
 
 const (
 	_ Level = iota
+	// Debug log level
 	Debug
+	// Warn log level
 	Warn
+	// Info log level
 	Info
+	// Error log level
 	Error
 )
 
