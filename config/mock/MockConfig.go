@@ -1,6 +1,8 @@
 package mock
 
 import (
+	"strconv"
+
 	"github.com/SpeedVan/go-common/config"
 	"github.com/SpeedVan/go-common/type/collection/omap"
 )
@@ -26,6 +28,34 @@ func (s *Config) Get(key string) string {
 		return r
 	}
 	return ""
+}
+
+// GetInt todo
+func (s *Config) GetInt(key string, _default int) int {
+	if r, ok := s.cfg[s.Prefix+key]; ok {
+		if ir, err := strconv.Atoi(r); err == nil {
+			return ir
+		}
+	}
+	return _default
+}
+
+// GetBool todo
+func (s *Config) GetBool(key string, _default bool) bool {
+	if r, ok := s.cfg[s.Prefix+key]; ok {
+		if br, err := strconv.ParseBool(r); err == nil {
+			return br
+		}
+	}
+	return _default
+}
+
+// GetString todo
+func (s *Config) GetString(key string, _default string) string {
+	if result, ok := s.cfg[s.Prefix+key]; ok {
+		return result
+	}
+	return _default
 }
 
 // GetMap todo
