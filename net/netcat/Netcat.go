@@ -26,6 +26,7 @@ func (s *Netcat) Run() {
 		conn, err := listener.Accept()
 		if err != nil || conn == nil {
 			fmt.Println("listener err = ", err)
+			break
 		} else {
 			go s.HandleConn(conn)
 		}

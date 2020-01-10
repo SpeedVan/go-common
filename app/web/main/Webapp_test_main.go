@@ -1,11 +1,11 @@
 package main
 
 import (
-	"github.com/SpeedVan/go-common/app/web"
-	"github.com/SpeedVan/go-common/log"
 	"net/http"
 	"time"
 
+	"github.com/SpeedVan/go-common/app/web"
+	"github.com/SpeedVan/go-common/log"
 	"github.com/SpeedVan/go-common/config/mock"
 )
 
