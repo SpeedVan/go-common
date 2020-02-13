@@ -5,6 +5,5 @@ import "sort"
 type Map map[sort.Interface]interface{}
 
 type OrderedMap struct {
-	order
 	Map
 }

@@ -10,12 +10,10 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/SpeedVan/go-common/log"
-	"github.com/SpeedVan/go-common/log/common"
-
 	"github.com/SpeedVan/go-common/client/httpclient"
 	"github.com/SpeedVan/go-common/client/httpclient/gitlab/graphql"
 	"github.com/SpeedVan/go-common/config"
+	"github.com/SpeedVan/go-common/log"
 )
 
 // Client todo
@@ -29,7 +27,7 @@ type Client struct {
 // New todo
 func New(config config.Config, logger log.Logger) (*Client, error) {
 	if logger == nil {
-		logger = common.NewCommon(log.Debug)
+		logger = log.NewCommon(log.Debug)
 	}
 
 	privateToken := config.Get("PRIVATE_TOKEN")
