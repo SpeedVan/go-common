@@ -28,6 +28,8 @@ type Restapp struct {
 	doneChan chan error
 	server   *http.Server
 	ctx      context.Context
+
+	onSignalFunc []func(os.Signal)
 }
 
 // New todo
@@ -62,8 +64,22 @@ func New(config config.Config, logger log.Logger) *Restapp {
 		},
 	}
 
+	app := &Restapp{
+		Logger:  logger,
+		Router:  router,
+		Address: addr,
+
+		doneChan:     doneChan,
+		server:       server,
+		ctx:          ctx,
+		onSignalFunc: []func(os.Signal){},
+	}
+
 	go func() {
 		sig := <-osSignalChan
+		for _, f := range app.onSignalFunc {
+			f(sig)
+		}
 		logger.DebugF("received sig: %v", sig)
 		// Shutdown会让监听断开，即协程里的server.ListenAndServe()将往后执行。
 		// Shutdown按协议说的是graceful，Close是immediately（强杀）。
@@ -78,6 +94,9 @@ func New(config config.Config, logger log.Logger) *Restapp {
 
 	go func() {
 		sig := <-osKillChan
+		for _, f := range app.onSignalFunc {
+			f(sig)
+		}
 		logger.DebugF("received sig: %v", sig)
 		if err := server.Close(); err == nil || err == http.ErrServerClosed {
 			logger.Debug("Close ok")
@@ -88,15 +107,7 @@ func New(config config.Config, logger log.Logger) *Restapp {
 		}
 	}()
 
-	return &Restapp{
-		Logger:  logger,
-		Router:  router,
-		Address: addr,
-
-		doneChan: doneChan,
-		server:   server,
-		ctx:      ctx,
-	}
+	return app
 }
 
 // Handle todo
@@ -123,6 +134,11 @@ func (s *Restapp) HandleController(c Controller) *Restapp {
 // RegisterOnShutdown todo
 func (s *Restapp) RegisterOnShutdown(f func()) {
 	s.server.RegisterOnShutdown(f)
+}
+
+// RegisterOnSignal todo
+func (s *Restapp) RegisterOnSignal(f func(os.Signal)) {
+	s.onSignalFunc = append(s.onSignalFunc, f)
 }
 
 // Run todo
