@@ -141,6 +141,13 @@ func (s *Restapp) RegisterOnSignal(f func(os.Signal)) {
 	s.onSignalFunc = append(s.onSignalFunc, f)
 }
 
+// RegisterSignalChan todo
+func (s *Restapp) RegisterSignalChan(c chan os.Signal) {
+	s.RegisterOnSignal(func(s os.Signal) {
+		c <- s
+	})
+}
+
 // Run todo
 func (s *Restapp) Run(level log.Level) error {
 	s.Logger.InfoF("start with address: %v", s.Address)
