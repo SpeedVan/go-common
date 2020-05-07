@@ -14,17 +14,36 @@ import (
 	"github.com/SpeedVan/go-common/log"
 )
 
+// Webapp todo
+type Webapp struct {
+	*rest.Restapp
+	CurrentPath string
+}
+
+// RegistStaticFolder todo
+func (s *Webapp) RegistStaticFolder(requestpath, dirpath string) {
+	s.Router.Handle(requestpath+"/{_dummy:.*}", &handler.DebugHandler{Logger: s.Logger, OrginalHandler: http.StripPrefix("/"+dirpath+"/", http.FileServer(http.Dir(s.CurrentPath+"/"+dirpath+"/")))})
+}
+
+// RegistStaticFile todo
+func (s *Webapp) RegistStaticFile(requestpath, filepath string) {
+
+	s.Router.Handle(requestpath, &handler.DebugHandler{Logger: s.Logger, OrginalHandler: FileResource(s.CurrentPath + filepath)})
+}
+
 // New todo
-func New(config config.Config, logger log.Logger) *rest.Restapp {
-	app := rest.New(config, logger)
-	// .StrictSlash(true)
+func New(config config.Config, logger log.Logger) *Webapp {
 	file, _ := exec.LookPath(os.Args[0])
 	path, _ := filepath.Abs(file)
 	currPath := filepath.Dir(path)
-	logger.DebugF("currPath:%v", currPath)
-	app.Router.Handle("/", &handler.DebugHandler{Logger: logger, OrginalHandler: FileResource(currPath + "/static/index.html")})
-	app.Router.Handle("/favicon.ico", &handler.DebugHandler{Logger: logger, OrginalHandler: FileResource(currPath + "/static/favicon.ico")})
-	app.Router.Handle("/static/{_dummy:.*}", &handler.DebugHandler{Logger: logger, OrginalHandler: http.StripPrefix("/static/", http.FileServer(http.Dir(currPath+"/static/")))})
+	restApp := rest.New(config, logger)
+	app := &Webapp{
+		Restapp:     restApp,
+		CurrentPath: currPath,
+	}
+
+	app.RegistStaticFile("/", "/static/index.html")
+	app.RegistStaticFile("/favicon.ico", "/static/favicon.ico")
 	return app
 }
 

@@ -16,7 +16,6 @@ func Test(t *testing.T) {
 	cfg := mock.New(m)
 
 	app := New(cfg, logger)
-
 	app.Run(log.Debug) // this level control webapp runtime log level
 
 }
