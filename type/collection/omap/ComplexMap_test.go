@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/SpeedVan/go-common/type/collection/omap"
+	"github.com/alpha-ss/go-common/type/collection/omap"
 )
 
 func Test(t *testing.T) {

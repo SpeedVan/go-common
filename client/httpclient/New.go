@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/SpeedVan/go-common/config"
+	"github.com/alpha-ss/go-common/config"
 )
 
 // New todo

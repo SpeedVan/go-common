@@ -10,10 +10,10 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/SpeedVan/go-common/client/httpclient"
-	"github.com/SpeedVan/go-common/client/httpclient/gitlab/graphql"
-	"github.com/SpeedVan/go-common/config"
-	"github.com/SpeedVan/go-common/log"
+	"github.com/alpha-ss/go-common/client/httpclient"
+	"github.com/alpha-ss/go-common/client/httpclient/gitlab/graphql"
+	"github.com/alpha-ss/go-common/config"
+	"github.com/alpha-ss/go-common/log"
 )
 
 // Client todo

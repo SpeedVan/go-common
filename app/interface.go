@@ -1,6 +1,6 @@
 package app
 
-import "github.com/SpeedVan/go-common/log"
+import "github.com/alpha-ss/go-common/log"
 
 // App todo
 type App interface {

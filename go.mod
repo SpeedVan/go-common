@@ -1,4 +1,4 @@
-module github.com/SpeedVan/go-common
+module github.com/alpha-ss/go-common
 
 go 1.13
 

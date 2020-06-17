@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/SpeedVan/go-common/app/rest"
-	"github.com/SpeedVan/go-common/app/rest/handler"
-	"github.com/SpeedVan/go-common/config"
-	"github.com/SpeedVan/go-common/log"
+	"github.com/alpha-ss/go-common/app/rest"
+	"github.com/alpha-ss/go-common/app/rest/handler"
+	"github.com/alpha-ss/go-common/config"
+	"github.com/alpha-ss/go-common/log"
 )
 
 // Webapp todo

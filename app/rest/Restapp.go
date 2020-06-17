@@ -12,10 +12,10 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/SpeedVan/go-common/app"
-	"github.com/SpeedVan/go-common/app/rest/handler"
-	"github.com/SpeedVan/go-common/config"
-	"github.com/SpeedVan/go-common/log"
+	"github.com/alpha-ss/go-common/app"
+	"github.com/alpha-ss/go-common/app/rest/handler"
+	"github.com/alpha-ss/go-common/config"
+	"github.com/alpha-ss/go-common/log"
 )
 
 // Restapp todo

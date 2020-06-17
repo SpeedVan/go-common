@@ -3,8 +3,8 @@ package mock
 import (
 	"strconv"
 
-	"github.com/SpeedVan/go-common/config"
-	"github.com/SpeedVan/go-common/type/collection/omap"
+	"github.com/alpha-ss/go-common/config"
+	"github.com/alpha-ss/go-common/type/collection/omap"
 )
 
 // Config todo

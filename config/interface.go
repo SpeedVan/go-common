@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/SpeedVan/go-common/type/collection/omap"
+	"github.com/alpha-ss/go-common/type/collection/omap"
 )
 
 // Config todo

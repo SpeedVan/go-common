@@ -3,8 +3,8 @@ package rest
 import (
 	"testing"
 
-	"github.com/SpeedVan/go-common/config/mock"
-	"github.com/SpeedVan/go-common/log"
+	"github.com/alpha-ss/go-common/config/mock"
+	"github.com/alpha-ss/go-common/log"
 )
 
 func Test(t *testing.T) {

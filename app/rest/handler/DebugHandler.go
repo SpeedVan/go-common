@@ -3,7 +3,7 @@ package handler
 import (
 	"net/http"
 
-	"github.com/SpeedVan/go-common/log"
+	"github.com/alpha-ss/go-common/log"
 )
 
 // DebugHandler todo
