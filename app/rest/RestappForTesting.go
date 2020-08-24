@@ -9,10 +9,17 @@ import (
 	"os"
 )
 
+var (
+	// EmptyParams todo
+	EmptyParams = map[string]string{}
+)
+
+// TestRequest todo
 type TestRequest struct {
 	url *url.URL
 }
 
+// Do todo
 func (s *TestRequest) Do(method string, header map[string]string, body io.Reader) *ResExpect {
 	req, _ := http.NewRequest(method, s.url.String(), body)
 
@@ -23,11 +30,13 @@ func (s *TestRequest) Do(method string, header map[string]string, body io.Reader
 	}
 }
 
+// ResExpect todo
 type ResExpect struct {
 	Res *http.Response
 	Err error
 }
 
+// Assert todo
 func (s *ResExpect) Assert(f func(err *ResExpect) error) {
 	if err := f(s); err != nil {
 		fmt.Println(err)
@@ -35,6 +44,7 @@ func (s *ResExpect) Assert(f func(err *ResExpect) error) {
 	}
 }
 
+// AssertRes todo
 func (s *ResExpect) AssertRes(f func(*http.Response) error) {
 	if err := f(s.Res); err != nil {
 		fmt.Println(err)
@@ -42,6 +52,7 @@ func (s *ResExpect) AssertRes(f func(*http.Response) error) {
 	}
 }
 
+// RestappForTesting todo
 type RestappForTesting struct {
 	*Restapp
 
@@ -49,9 +60,19 @@ type RestappForTesting struct {
 }
 
 // URLTestWithParams todo
-func (s *RestappForTesting) URLTestWithParams(urlName string, urlParams []string, queryParams map[string]string) *TestRequest {
-	localServerURL, _ := url.Parse(s.testServer.URL)
-	urlPtr, _ := s.Restapp.Router.Get(urlName).URL()
+func (s *RestappForTesting) URLTestWithParams(urlName string, urlParams map[string]string, queryParams map[string]string) *TestRequest {
+	localServerURL, err := url.Parse(s.testServer.URL)
+	if err != nil {
+		fmt.Println(err)
+	}
+	paramsArr := []string{}
+	for k, v := range urlParams {
+		paramsArr = append(paramsArr, k, v)
+	}
+	urlPtr, err := s.Restapp.Router.Get(urlName).URL(paramsArr...)
+	if err != nil {
+		fmt.Println(err)
+	}
 	localServerURL.Path = urlPtr.Path
 	for k, v := range queryParams {
 		localServerURL.Query().Add(k, v)
@@ -63,9 +84,10 @@ func (s *RestappForTesting) URLTestWithParams(urlName string, urlParams []string
 
 // URLTest todo
 func (s *RestappForTesting) URLTest(urlName string) *TestRequest {
-	return s.URLTestWithParams(urlName, []string{}, map[string]string{})
+	return s.URLTestWithParams(urlName, EmptyParams, EmptyParams)
 }
 
+// NewForTesting todo
 func NewForTesting(restapp *Restapp) *RestappForTesting {
 	ts := httptest.NewServer(restapp.Router)
 	return &RestappForTesting{
