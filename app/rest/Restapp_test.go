@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/alpha-ss/go-common/config/mock"
@@ -17,6 +18,10 @@ func Test(t *testing.T) {
 
 	app := New(cfg, logger)
 
-	app.Run(log.Debug) // this level control webapp runtime log level
+	app.HandleFunc("/check", func(w http.ResponseWriter, r *http.Request) {
+
+	})
+
+	go app.Run(log.Debug) // this level control webapp runtime log level
 
 }

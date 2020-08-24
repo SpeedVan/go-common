@@ -112,13 +112,13 @@ func New(config config.Config, logger log.Logger) *Restapp {
 
 // Handle todo
 func (s *Restapp) Handle(p string, h http.Handler) *Restapp {
-	s.Router.Handle(p, h)
+	s.Router.Name(p).Path(p).Handler(h)
 	return s
 }
 
 // HandleFunc todo
 func (s *Restapp) HandleFunc(p string, f func(http.ResponseWriter, *http.Request)) *Restapp {
-	s.Router.HandleFunc(p, f)
+	s.Router.Name(p).Path(p).HandlerFunc(f)
 	return s
 }
 
@@ -126,7 +126,7 @@ func (s *Restapp) HandleFunc(p string, f func(http.ResponseWriter, *http.Request
 func (s *Restapp) HandleController(c Controller) *Restapp {
 	for k, v := range c.GetRoute() {
 		s.Logger.DebugF("registed request path: %v %v", k, v)
-		s.Router.Handle(k, &handler.DebugHandler{Logger: s.Logger, OrginalHandler: v})
+		s.Handle(k, &handler.DebugHandler{Logger: s.Logger, OrginalHandler: v})
 	}
 	return s
 }
