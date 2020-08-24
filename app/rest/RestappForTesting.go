@@ -74,9 +74,11 @@ func (s *RestappForTesting) URLTestWithParams(urlName string, urlParams map[stri
 		fmt.Println(err)
 	}
 	localServerURL.Path = urlPtr.Path
+	query := localServerURL.Query()
 	for k, v := range queryParams {
-		localServerURL.Query().Add(k, v)
+		query.Add(k, v)
 	}
+	localServerURL.RawQuery = query.Encode()
 	return &TestRequest{
 		url: localServerURL,
 	}
