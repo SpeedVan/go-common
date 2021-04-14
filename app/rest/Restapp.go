@@ -39,10 +39,6 @@ func New(config config.Config, logger log.Logger) *Restapp {
 	}
 
 	doneChan := make(chan error)
-	osSignalChan := make(chan os.Signal, 1)
-	osKillChan := make(chan os.Signal, 1)
-	signal.Notify(osSignalChan, syscall.SIGINT, syscall.SIGTERM)
-	signal.Notify(osKillChan, syscall.SIGKILL)
 
 	ctx := context.Background()
 
@@ -74,38 +70,6 @@ func New(config config.Config, logger log.Logger) *Restapp {
 		ctx:          ctx,
 		onSignalFunc: []func(os.Signal){},
 	}
-
-	go func() {
-		sig := <-osSignalChan
-		for _, f := range app.onSignalFunc {
-			f(sig)
-		}
-		logger.DebugF("received sig: %v", sig)
-		// Shutdown会让监听断开，即协程里的server.ListenAndServe()将往后执行。
-		// Shutdown按协议说的是graceful，Close是immediately（强杀）。
-		if err := server.Shutdown(ctx); err == nil || err == http.ErrServerClosed {
-			logger.Debug("Shutdown ok")
-			doneChan <- nil
-		} else {
-			logger.ErrorF("Shutdown err: %v", err)
-			doneChan <- err
-		}
-	}()
-
-	go func() {
-		sig := <-osKillChan
-		for _, f := range app.onSignalFunc {
-			f(sig)
-		}
-		logger.DebugF("received sig: %v", sig)
-		if err := server.Close(); err == nil || err == http.ErrServerClosed {
-			logger.Debug("Close ok")
-			doneChan <- nil
-		} else {
-			logger.ErrorF("Close err: %v", err)
-			doneChan <- err
-		}
-	}()
 
 	return app
 }
@@ -152,6 +116,27 @@ func (s *Restapp) RegisterSignalChan(c chan os.Signal) {
 func (s *Restapp) Run(level log.Level) error {
 	s.Logger.InfoF("start with address: %v", s.Address)
 	s.Logger.SetLevel(level)
+
+	osSignalChan := make(chan os.Signal, 1)
+	signal.Notify(osSignalChan, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		sig := <-osSignalChan
+		for _, f := range s.onSignalFunc {
+			f(sig)
+		}
+		s.Logger.DebugF("received sig: %v", sig)
+		// Shutdown会让监听断开，即协程里的server.ListenAndServe()将往后执行。
+		// Shutdown按协议说的是graceful，Close是immediately（强杀）。
+		// s.server.Close()
+		if err := s.server.Shutdown(s.ctx); err == nil || err == http.ErrServerClosed {
+			s.Logger.Debug("Shutdown ok")
+			s.doneChan <- nil
+		} else {
+			s.Logger.ErrorF("Shutdown err: %v", err)
+			s.doneChan <- err
+		}
+	}()
 
 	// http 端口监听
 	go func() {
