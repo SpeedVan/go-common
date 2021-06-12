@@ -1,3 +1,5 @@
+// +build linux
+
 package file
 
 import (
@@ -9,7 +11,8 @@ import (
 type Lock struct {
 	dir string
 	fd  int
-	ft  *syscall.Flock_t
+	// +build linux
+	ft *syscall.Flock_t
 }
 
 // New todo
