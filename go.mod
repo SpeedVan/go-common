@@ -1,4 +1,4 @@
-module github.com/alpha-ss/go-common
+module github.com/alpha-supsys/go-common
 
 go 1.13
 

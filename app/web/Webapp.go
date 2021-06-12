@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/alpha-ss/go-common/app/rest"
-	"github.com/alpha-ss/go-common/app/rest/handler"
-	"github.com/alpha-ss/go-common/config"
-	"github.com/alpha-ss/go-common/log"
+	"github.com/alpha-supsys/go-common/app/rest"
+	"github.com/alpha-supsys/go-common/app/rest/handler"
+	"github.com/alpha-supsys/go-common/config"
+	"github.com/alpha-supsys/go-common/log"
 )
 
 // Webapp todo

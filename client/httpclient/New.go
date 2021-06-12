@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/alpha-ss/go-common/config"
+	"github.com/alpha-supsys/go-common/config"
 )
 
 // New todo

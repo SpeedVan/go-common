@@ -3,7 +3,7 @@ package handler
 import (
 	"net/http"
 
-	"github.com/alpha-ss/go-common/log"
+	"github.com/alpha-supsys/go-common/log"
 )
 
 // DebugHandler todo

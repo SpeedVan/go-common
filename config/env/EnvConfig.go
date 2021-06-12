@@ -8,9 +8,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/alpha-ss/go-common/config"
-	"github.com/alpha-ss/go-common/type/collection/omap"
-	"github.com/alpha-ss/go-common/type/either"
+	"github.com/alpha-supsys/go-common/config"
+	"github.com/alpha-supsys/go-common/type/collection/omap"
+	"github.com/alpha-supsys/go-common/type/either"
 )
 
 var (

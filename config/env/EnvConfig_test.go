@@ -6,8 +6,8 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/alpha-ss/go-common/config"
-	"github.com/alpha-ss/go-common/config/env"
+	"github.com/alpha-supsys/go-common/config"
+	"github.com/alpha-supsys/go-common/config/env"
 )
 
 func Test(t *testing.T) {

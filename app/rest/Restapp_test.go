@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/alpha-ss/go-common/config/mock"
-	"github.com/alpha-ss/go-common/log"
+	"github.com/alpha-supsys/go-common/config/mock"
+	"github.com/alpha-supsys/go-common/log"
 )
 
 func Test(t *testing.T) {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/alpha-ss/go-common/type/collection/omap"
+	"github.com/alpha-supsys/go-common/type/collection/omap"
 )
 
 func TestCompositeMap(t *testing.T) {

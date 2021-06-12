@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/alpha-ss/go-common/type/collection/omap"
+	"github.com/alpha-supsys/go-common/type/collection/omap"
 )
 
 // Config todo

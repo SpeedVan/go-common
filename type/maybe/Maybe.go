@@ -1,6 +1,6 @@
 package maybe
 
-import "github.com/alpha-ss/go-common/type/either"
+import "github.com/alpha-supsys/go-common/type/either"
 
 type Maybe interface {
 	either.Either
