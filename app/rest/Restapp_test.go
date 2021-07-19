@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/alpha-supsys/go-common/config/mock"
 	"github.com/alpha-supsys/go-common/log"
+	"github.com/alpha-supsys/go-common/mock/config"
 )
 
 func Test(t *testing.T) {
@@ -14,7 +14,7 @@ func Test(t *testing.T) {
 	m := map[string]string{
 		"WEBAPP_LISTEN_ADDRESS": ":9999",
 	}
-	cfg := mock.New(m)
+	cfg := config.New(m)
 
 	app := New(cfg, logger)
 
