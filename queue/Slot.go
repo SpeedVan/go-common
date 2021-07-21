@@ -1,5 +1,7 @@
 package queue
 
+import "fmt"
+
 type Slot interface {
 	Ready() bool
 	Val() interface{}
@@ -29,7 +31,7 @@ type DSlotArr []DSlot
 func NewDSlotArr(cap uint32) *DSlotArr {
 	arr := make(DSlotArr, cap)
 	for i := uint32(0); i < cap-1; i++ {
-		// fmt.Printf("arr[%v]:%p, next:%p\n", i, &arr[i], &arr[i+1])
+		fmt.Printf("arr[%v]:%p, next:%p\n", i, &arr[i], &arr[i+1])
 		arr[i].next = &arr[i+1]
 	}
 
@@ -38,7 +40,7 @@ func NewDSlotArr(cap uint32) *DSlotArr {
 
 func NewDSlotRing(cap uint32) *DSlotArr {
 	arr := NewDSlotArr(cap)
-	// fmt.Printf("arr[%v]:%p, next:%p\n", cap-1, &(*arr)[cap-1], &(*arr)[0])
+	fmt.Printf("arr[%v]:%p, next:%p\n", cap-1, &(*arr)[cap-1], &(*arr)[0])
 	(*arr)[cap-1].next = &(*arr)[0]
 	return arr
 }

@@ -29,7 +29,7 @@ func NewQueue(cap uint32) *Queue {
 		scaleChan: make(chan int),
 		stopChan:  make(chan int),
 	}
-	q.asyncAutoscale()
+	// q.asyncAutoscale()
 	return q
 }
 
@@ -64,8 +64,9 @@ func (s *Queue) Get() interface{} {
 		) {
 			for {
 				if newGSlot.ready {
+					value := newGSlot.val
 					newGSlot.ready = false
-					return newGSlot.val
+					return value
 				} else {
 					runtime.Gosched()
 				}
