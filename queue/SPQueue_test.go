@@ -17,14 +17,14 @@ func TestSPQueue(t *testing.T) {
 	routine1 := func() {
 		publisher := q.Publisher("p1")
 		for i := 0; i < 10000; i = i + 2 {
-			publisher.Put(i)
+			publisher.Put(func(s Slot) { (s.(*SPSlot))._val = i })
 		}
 	}
 
 	routine2 := func() {
 		publisher := q.Publisher("p2")
 		for i := 1; i < 10000; i = i + 2 {
-			publisher.Put(i)
+			publisher.Put(func(s Slot) { (s.(*SPSlot))._val = i })
 		}
 	}
 
@@ -50,7 +50,7 @@ func TestSPQueue(t *testing.T) {
 
 	subscribe := q.Subscribe("s1")
 	for i := 0; i < 10000; i++ {
-		subscribe.Get()
+		subscribe.Get(func(s Slot) {})
 		// ch <- subscribe.Get()
 		fmt.Println(i)
 		// fmt.Printf("Get %v, Count: %v\n", q.Get(), i+1)

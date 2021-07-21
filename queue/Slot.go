@@ -3,52 +3,32 @@ package queue
 import "fmt"
 
 type Slot interface {
-	Ready() bool
-	Val() interface{}
-	Next() Slot
+	wBusy() *uint32
+	rBusy() *uint32
+	ready() *bool
+	next() Slot
+	setNext(Slot)
 }
 
-type DSlot struct {
-	ready bool
-	val   interface{}
-	next  *DSlot
+type SlotArr interface {
+	HeadSlot() Slot
+	LastSlot() Slot
+	Len() uint32
+	Get(uint32) Slot
 }
 
-func (s *DSlot) Ready() bool {
-	return s.ready
-}
-
-func (s *DSlot) Val() interface{} {
-	return s.val
-}
-
-func (s *DSlot) Next() Slot {
-	return s.next
-}
-
-type DSlotArr []DSlot
-
-func NewDSlotArr(cap uint32) *DSlotArr {
-	arr := make(DSlotArr, cap)
+func NewSlotArr(arrCreator func() SlotArr) SlotArr {
+	arr := arrCreator()
+	cap := arr.Len()
 	for i := uint32(0); i < cap-1; i++ {
-		fmt.Printf("arr[%v]:%p, next:%p\n", i, &arr[i], &arr[i+1])
-		arr[i].next = &arr[i+1]
+		fmt.Printf("arr[%v]:%p, next:%p\n", i, arr.Get(i), arr.Get(i+1))
+		arr.Get(i).setNext(arr.Get(i + 1))
 	}
-
-	return &arr
-}
-
-func NewDSlotRing(cap uint32) *DSlotArr {
-	arr := NewDSlotArr(cap)
-	fmt.Printf("arr[%v]:%p, next:%p\n", cap-1, &(*arr)[cap-1], &(*arr)[0])
-	(*arr)[cap-1].next = &(*arr)[0]
 	return arr
 }
 
-func (s *DSlotArr) HeadSlot() *DSlot {
-	return &(*s)[0]
-}
-
-func (s *DSlotArr) LastSlot() *DSlot {
-	return &(*s)[len(*s)-1]
+func NewSlotRing(arrCreator func() SlotArr) SlotArr {
+	arr := NewSlotArr(arrCreator)
+	arr.Get(arr.Len() - 1).setNext(arr.Get(0))
+	return arr
 }

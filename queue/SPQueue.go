@@ -42,8 +42,8 @@ func (s *SPQueue) asyncAutoscale() {
 			}
 			if len(s.scaleChan) > 5 {
 				arr := NewSPSlotArr(s.cap)
-				arr.LastSlot().next = s.slots[0].HeadSlot()
-				s.slots[len(s.slots)-1].LastSlot().next = arr.HeadSlot()
+				arr.LastSlot().setNext(s.slots[0].HeadSlot())
+				s.slots[len(s.slots)-1].LastSlot().setNext(arr.HeadSlot())
 				s.slots = append(s.slots, arr)
 				fmt.Println("scaled")
 			}
@@ -68,34 +68,34 @@ func (s *SPQueue) Subscribe(id string) *Subscribe {
 }
 
 type Publisher struct {
-	id    string  // publisher标识
-	slot  *SPSlot // 每个publisher有自己的offset的意思，用链表则每个都有自己的引用
+	id    string // publisher标识
+	slot  Slot   // 每个publisher有自己的offset的意思，用链表则每个都有自己的引用
 	queue *SPQueue
 }
 
-func (s *Publisher) Put(v interface{}) {
+func (s *Publisher) Put(handler func(Slot)) {
 	for {
-		if s.slot.rbusy > 0 { // 写追尾读，没必要继续
+		if *s.slot.rBusy() > 0 { // 写追尾读，没必要继续
 			runtime.Gosched()
 			continue
 		}
 
 		if atomic.CompareAndSwapUint32(
-			&s.slot.wbusy,
+			s.slot.wBusy(),
 			0,
 			1,
 		) {
-			if s.slot.ready { // 抢占成功后，若果当前写过了还没读，则跳过
-				s.slot.wbusy = 0
-				s.slot = s.slot.next
+			if *s.slot.ready() { // 抢占成功后，若果当前写过了还没读，则跳过
+				*s.slot.wBusy() = 0
+				s.slot = s.slot.next()
 
 				continue
 			} else {
 				for { // 存疑，实际可能并不存在这样的状态
-					if !s.slot.ready { // 存疑，实际可能并不存在这样的状态
-						s.slot.val = v
-						s.slot.ready = true
-						s.slot.wbusy = 0
+					if !*s.slot.ready() { // 存疑，实际可能并不存在这样的状态
+						handler(s.slot)
+						*s.slot.ready() = true
+						*s.slot.wBusy() = 0
 						return
 					} else {
 						break
@@ -103,41 +103,41 @@ func (s *Publisher) Put(v interface{}) {
 				}
 			}
 		} else {
-			s.slot = s.slot.next
+			s.slot = s.slot.next()
 		}
 
 	}
 }
 
 type Subscribe struct {
-	id    string  // subscribe标识
-	slot  *SPSlot // 每个subscribe有自己的offset的意思，用链表则每个都有自己的引用
+	id    string // subscribe标识
+	slot  Slot   // 每个subscribe有自己的offset的意思，用链表则每个都有自己的引用
 	queue *SPQueue
 }
 
-func (s *Subscribe) Get() interface{} {
+func (s *Subscribe) Get(handler func(Slot)) {
 	for {
-		if s.slot.wbusy > 0 { // 读追写，让对方先前进
+		if *s.slot.wBusy() > 0 { // 读追写，让对方先前进
 			runtime.Gosched()
 			continue
 		}
 
 		if atomic.CompareAndSwapUint32(
-			&s.slot.rbusy,
+			s.slot.rBusy(),
 			0,
 			1,
 		) {
-			if !s.slot.ready { // 抢占成功后，若果当前读过了还没写，则跳过
-				s.slot.rbusy = 0
-				s.slot = s.slot.next
+			if !*s.slot.ready() { // 抢占成功后，若果当前读过了还没写，则跳过
+				*s.slot.rBusy() = 0
+				s.slot = s.slot.next()
 				continue
 			} else {
 				for { // 存疑，实际可能并不存在这样的状态
-					if s.slot.ready { // 存疑，实际可能并不存在这样的状态
-						value := s.slot.val
-						s.slot.ready = false
-						s.slot.rbusy = 0
-						return value
+					if *s.slot.ready() { // 存疑，实际可能并不存在这样的状态
+						handler(s.slot)
+						*s.slot.ready() = false
+						*s.slot.rBusy() = 0
+						return
 					} else {
 						break
 					}
