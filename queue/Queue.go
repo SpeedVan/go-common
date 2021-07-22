@@ -6,33 +6,49 @@ import (
 	"sync/atomic"
 )
 
-type SPQueue struct {
-	slots []*SPSlotArr
+type Queue interface {
+	Publisher(id string) Publisher
+	Subscribe(id string) Subscribe
+}
+
+type Publisher interface {
+	Put(handler func(Slot))
+}
+
+type Subscribe interface {
+	Get(handler func(Slot))
+}
+
+type BaseQueue struct {
+	slots []SlotArr
 
 	cap   uint32
-	gSlot *SPSlot
-	pSlot *SPSlot
+	gSlot Slot
+	pSlot Slot
 
 	scaleChan chan int
 	stopChan  chan int
+
+	slotArrCreator func() SlotArr
 }
 
-func NewSPQueue(cap uint32) *SPQueue {
-	arr := NewSPSlotRing(cap)
+func NewQueue(slotArrCreator func() SlotArr) Queue {
+	arr := slotArrCreator()
 
-	q := &SPQueue{
-		slots:     []*SPSlotArr{arr},
-		cap:       cap,
-		gSlot:     arr.HeadSlot(),
-		pSlot:     arr.HeadSlot(),
-		scaleChan: make(chan int),
-		stopChan:  make(chan int),
+	q := &BaseQueue{
+		slots:          []SlotArr{arr},
+		cap:            arr.Len(),
+		gSlot:          arr.HeadSlot(),
+		pSlot:          arr.HeadSlot(),
+		scaleChan:      make(chan int),
+		stopChan:       make(chan int),
+		slotArrCreator: slotArrCreator,
 	}
 	// q.asyncAutoscale()
 	return q
 }
 
-func (s *SPQueue) asyncAutoscale() {
+func (s *BaseQueue) asyncAutoscale() {
 	go func() {
 		for {
 			select {
@@ -41,7 +57,7 @@ func (s *SPQueue) asyncAutoscale() {
 			case <-s.scaleChan:
 			}
 			if len(s.scaleChan) > 5 {
-				arr := NewSPSlotArr(s.cap)
+				arr := s.slotArrCreator()
 				arr.LastSlot().setNext(s.slots[0].HeadSlot())
 				s.slots[len(s.slots)-1].LastSlot().setNext(arr.HeadSlot())
 				s.slots = append(s.slots, arr)
@@ -51,29 +67,29 @@ func (s *SPQueue) asyncAutoscale() {
 	}()
 }
 
-func (s *SPQueue) Publisher(id string) Publisher {
-	return &SPPublisher{
+func (s *BaseQueue) Publisher(id string) Publisher {
+	return &DefalutPublisher{
 		id:    id,
 		slot:  s.pSlot, // 起始参考值，
 		queue: s,
 	}
 }
 
-func (s *SPQueue) Subscribe(id string) Subscribe {
-	return &SPSubscribe{
+func (s *BaseQueue) Subscribe(id string) Subscribe {
+	return &DefaultSubscribe{
 		id:    id,
 		slot:  s.gSlot,
 		queue: s,
 	}
 }
 
-type SPPublisher struct {
+type DefalutPublisher struct {
 	id    string // publisher标识
 	slot  Slot   // 每个publisher有自己的offset的意思，用链表则每个都有自己的引用
 	queue Queue
 }
 
-func (s *SPPublisher) Put(handler func(Slot)) {
+func (s *DefalutPublisher) Put(handler func(Slot)) {
 	for {
 		if *s.slot.rBusy() > 0 { // 写追尾读，没必要继续
 			runtime.Gosched()
@@ -109,13 +125,13 @@ func (s *SPPublisher) Put(handler func(Slot)) {
 	}
 }
 
-type SPSubscribe struct {
+type DefaultSubscribe struct {
 	id    string // subscribe标识
 	slot  Slot   // 每个subscribe有自己的offset的意思，用链表则每个都有自己的引用
 	queue Queue
 }
 
-func (s *SPSubscribe) Get(handler func(Slot)) {
+func (s *DefaultSubscribe) Get(handler func(Slot)) {
 	for {
 		if *s.slot.wBusy() > 0 { // 读追写，让对方先前进
 			runtime.Gosched()

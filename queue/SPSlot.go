@@ -3,31 +3,8 @@ package queue
 import "fmt"
 
 type SPSlot struct {
-	_wbusy uint32 // 写行为相互抢占用
-	_rbusy uint32 // 读行为相互抢占
-	_ready bool   // 读写之间临界值
-	_val   interface{}
-	_next  Slot
-}
-
-func (s *SPSlot) wBusy() *uint32 {
-	return &s._wbusy
-}
-
-func (s *SPSlot) rBusy() *uint32 {
-	return &s._rbusy
-}
-
-func (s *SPSlot) ready() *bool {
-	return &s._ready
-}
-
-func (s *SPSlot) next() Slot {
-	return s._next
-}
-
-func (s *SPSlot) setNext(n Slot) {
-	s._next = n
+	BaseSlot
+	_val interface{}
 }
 
 type SPSlotArr []SPSlot

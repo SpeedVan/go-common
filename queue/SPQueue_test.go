@@ -6,8 +6,55 @@ import (
 	"time"
 )
 
-func TestSPQueue(t *testing.T) {
-	q := NewSPQueue(3)
+type MySlot struct {
+	BaseSlot
+	t        time.Time
+	abstract string
+	action   string
+	data     []byte
+}
+
+type MySlotArr []MySlot
+
+func NewMySlotArr(cap uint32) *MySlotArr {
+	arr := make(MySlotArr, cap)
+	for i := uint32(0); i < cap-1; i++ {
+		fmt.Printf("arr[%v]:%p, next:%p\n", i, &arr[i], &arr[i+1])
+		arr[i].setNext(&arr[i+1])
+	}
+
+	return &arr
+}
+
+func NewMySlotRing(cap uint32) *MySlotArr {
+	arr := NewMySlotArr(cap)
+	fmt.Printf("arr[%v]:%p, next:%p\n", cap-1, &(*arr)[cap-1], &(*arr)[0])
+	(*arr)[cap-1].setNext(&(*arr)[0])
+	return arr
+}
+
+func (s *MySlotArr) HeadSlot() Slot {
+	return &(*s)[0]
+}
+
+func (s *MySlotArr) LastSlot() Slot {
+	return &(*s)[len(*s)-1]
+}
+
+func (s *MySlotArr) Len() uint32 {
+	return uint32(len(*s))
+}
+
+func (s *MySlotArr) Get(idx uint32) Slot {
+	return &(*s)[idx]
+}
+
+func TestMyQueue(t *testing.T) {
+	q := NewQueue(func() SlotArr {
+		return NewSlotRing(func() SlotArr {
+			return NewMySlotRing(1024)
+		})
+	})
 	// m := map[interface{}]int{}
 	// for i := 0; i < 10000; i++ {
 	// 	m[i] = i
@@ -17,14 +64,14 @@ func TestSPQueue(t *testing.T) {
 	routine1 := func() {
 		publisher := q.Publisher("p1")
 		for i := 0; i < 10000; i = i + 2 {
-			publisher.Put(func(s Slot) { (s.(*SPSlot))._val = i })
+			publisher.Put(func(s Slot) { (s.(*MySlot)).t = time.Now() })
 		}
 	}
 
 	routine2 := func() {
 		publisher := q.Publisher("p2")
 		for i := 1; i < 10000; i = i + 2 {
-			publisher.Put(func(s Slot) { (s.(*SPSlot))._val = i })
+			publisher.Put(func(s Slot) { (s.(*MySlot)).t = time.Now() })
 		}
 	}
 
